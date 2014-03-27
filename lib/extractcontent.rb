@@ -30,6 +30,7 @@ module ExtractContent
     :waste_expressions => /Copyright|All Rights Reserved/i,           # フッターに含まれる特徴的なキーワードを指定
     :dom_separator => '',                                             # DOM間に挿入する文字列を指定
     :debug => false,                                                  # true の場合、ブロック情報を標準出力に
+    :with_html_tag => false,                                          # true の場合、bodyからHTMLタグを取り除かずに返す
   }
 
   # 実体参照変換
@@ -58,7 +59,7 @@ module ExtractContent
     # option parameters
     opt = if opt then @default.merge(opt) else @default end
     b = binding   # local_variable_set があれば……
-    threshold=min_length=decay_factor=continuous_factor=punctuation_weight=punctuations=waste_expressions=dom_separator=debug=nil
+    threshold=min_length=decay_factor=continuous_factor=punctuation_weight=punctuations=waste_expressions=dom_separator=debug=with_html_tag=nil
     opt.each do |key, value|
       eval("#{key.id2name} = opt[:#{key.id2name}]", b) 
     end
@@ -123,7 +124,11 @@ module ExtractContent
     end
     bodylist << [body, score]
     body = bodylist.inject{|a,b| if a[1]>=b[1] then a else b end }
-    [strip_tags(body[0], dom_separator), title]
+    if with_html_tag
+      [body[0], title]
+    else
+      [strip_tags(body[0], dom_separator), title]
+    end
   end
 
   # Extracts title.
